@@ -72,6 +72,16 @@ function create() {
   // Ensure that the player can't leave the screen
   player.setCollideWorldBounds(true);
 
+  // Let's add the ball
+  ball = this.physics.add.sprite(
+    400, // x position
+    570, // y position
+    'ball' // key of image for the sprite
+  );
+  ball.setBounce(1, 1);
+  // Also collides with world bounds
+  ball.setCollideWorldBounds(true);
+
   // Add blue bricks
   violetBricks = this.physics.add.group({
     key: 'brick1',
