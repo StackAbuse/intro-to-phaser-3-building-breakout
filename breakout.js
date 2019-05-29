@@ -72,6 +72,38 @@ function create() {
   // Ensure that the player can't leave the screen
   player.setCollideWorldBounds(true);
 
+  // Add blue bricks
+  violetBricks = this.physics.add.group({
+    key: 'brick1',
+    repeat: 9,
+    setXY: {
+      x: 90,
+      y: 120,
+      stepX: 70
+    }
+  });
+
+  // Add yellow bricks
+  yellowBricks = this.physics.add.group({
+    key: 'brick2',
+    repeat: 9,
+    setXY: {
+      x: 90,
+      y: 80,
+      stepX: 70
+    }
+  });
+
+  // Add red bricks
+  redBricks = this.physics.add.group({
+    key: 'brick3',
+    repeat: 9,
+    setXY: {
+      x: 90,
+      y: 40,
+      stepX: 70
+    }
+  });
 }
 
 /**
