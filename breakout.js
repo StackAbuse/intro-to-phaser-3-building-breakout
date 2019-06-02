@@ -36,7 +36,7 @@ const config = {
     default: 'arcade',
     arcade: {
       gravity: false
-    }
+    },
   }
 };
 
@@ -117,6 +117,9 @@ function create() {
       stepX: 70
     }
   });
+
+  // This needs to be added so the ball falls to the bottom
+  this.physics.world.checkCollision.down = false;
 }
 
 /**
@@ -145,5 +148,7 @@ function update() {
       ball.setVelocityY(-200);
     }
   }
+
+
 }
 
