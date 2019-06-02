@@ -49,7 +49,7 @@ const game = new Phaser.Game(config);
  */
 function preload() {
   this.load.image('ball', 'assets/images/ball_32_32.png');
-  this.load.image('paddle', 'assets/images/paddle_64_32.png');
+  this.load.image('paddle', 'assets/images/paddle_128_32.png');
   this.load.image('brick1', 'assets/images/brick1_64_32.png');
   this.load.image('brick2', 'assets/images/brick2_64_32.png');
   this.load.image('brick3', 'assets/images/brick3_64_32.png');
@@ -155,7 +155,7 @@ function update() {
   // The game only begins when the user presses Spacebar to release the paddle
   if (!started) {
     // The ball should follow the paddle while the user selects where to start
-    ball.body.x = player.body.x + (player.body.width / 4);
+    ball.body.x = player.body.x + (player.body.width / 2) - (ball.body.width / 2);
 
     if (cursors.space.isDown) {
       started = true;
@@ -195,9 +195,9 @@ function destroyBrick(ball, brick) {
  */
 function hitPaddle(ball, player) {
   // Increase the velocity of the ball after it bounces
-  ball.body.setVelocityY(ball.body.velocity.y - 15);
+  ball.body.setVelocityY(ball.body.velocity.y - 10);
 
-  let newXVelocity = Math.abs(ball.body.velocity.x) + 15;
+  let newXVelocity = Math.abs(ball.body.velocity.x) + 10;
   // If the ball is to the left of the player, ensure the x velocity is negative
   if (ball.body.x < player.body.x) {
     ball.body.setVelocityX(-newXVelocity);
