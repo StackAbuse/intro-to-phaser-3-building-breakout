@@ -92,36 +92,36 @@ function create() {
   // Add blue bricks
   violetBricks = this.physics.add.group({
     key: 'brick1',
-    repeat: 9,
+    repeat: 8,
     immovable: true,
     setXY: {
       x: 90,
-      y: 120,
-      stepX: 70
+      y: 140,
+      stepX: 80
     }
   });
 
   // Add yellow bricks
   yellowBricks = this.physics.add.group({
     key: 'brick2',
-    repeat: 9,
+    repeat: 8,
     immovable: true,
     setXY: {
       x: 90,
-      y: 80,
-      stepX: 70
+      y: 90,
+      stepX: 80
     }
   });
 
   // Add red bricks
   redBricks = this.physics.add.group({
     key: 'brick3',
-    repeat: 9,
+    repeat: 8,
     immovable: true,
     setXY: {
       x: 90,
       y: 40,
-      stepX: 70
+      stepX: 80
     }
   });
 
@@ -146,33 +146,65 @@ function create() {
     },
   );
   startText.setOrigin(0.5);
+
+  // Create game over text
+  gameOverText = this.add.text(
+    this.physics.world.bounds.width / 2,
+    this.physics.world.bounds.height / 3,
+    'Game Over',
+    {
+      fontFamily: 'Monaco, Courier, monospace',
+      fontSize: 64
+    },
+  );
+  gameOverText.setOrigin(0.5);
+  gameOverText.setVisible(false);
+
+  playerWonText = this.add.text(
+    this.physics.world.bounds.width / 2,
+    this.physics.world.bounds.height / 3,
+    'You won!',
+    {
+      fontFamily: 'Monaco, Courier, monospace',
+      fontSize: 64
+    },
+  );
+  playerWonText.setOrigin(0.5);
+  playerWonText.setVisible(false);
 }
 
 /**
  *
  */
 function update() {
-  // Put this in so that the player doesn't move if no key is being pressed
-  player.body.setVelocityX(0);
-  /**
-   * Check the cursor and move the velocity accordingly. With Arcade Physics we
-   * adjust velocity for movement as opposed to manipulating xy values directly
-   */
-  if (cursors.left.isDown) {
-    player.body.setVelocityX(-350);
-  } else if (cursors.right.isDown) {
-    player.body.setVelocityX(350);
-  }
+  // Check if the ball left the scene i.e. game over
+  if (isGameOver(ball, this.physics.world)) {
+    gameOverText.setVisible(true);
+  } else if (isWon(violetBricks, yellowBricks, redBricks)) {
+    playerWonText.setVisible(true);
+  } else {
+    // Put this in so that the player doesn't move if no key is being pressed
+    player.body.setVelocityX(0);
+    /**
+     * Check the cursor and move the velocity accordingly. With Arcade Physics we
+     * adjust velocity for movement as opposed to manipulating xy values directly
+     */
+    if (cursors.left.isDown) {
+      player.body.setVelocityX(-350);
+    } else if (cursors.right.isDown) {
+      player.body.setVelocityX(350);
+    }
 
-  // The game only begins when the user presses Spacebar to release the paddle
-  if (!started) {
-    // The ball should follow the paddle while the user selects where to start
-    ball.body.x = player.body.x + (player.body.width / 2) - (ball.body.width / 2);
+    // The game only begins when the user presses Spacebar to release the paddle
+    if (!started) {
+      // The ball should follow the paddle while the user selects where to start
+      ball.body.x = player.body.x + (player.body.width / 2) - (ball.body.width / 2);
 
-    if (cursors.space.isDown) {
-      started = true;
-      ball.setVelocityY(-200);
-      startText.visible = false;
+      if (cursors.space.isDown) {
+        started = true;
+        ball.setVelocityY(-200);
+        startText.visible = false;
+      }
     }
   }
 }
@@ -208,13 +240,33 @@ function destroyBrick(ball, brick) {
  */
 function hitPaddle(ball, player) {
   // Increase the velocity of the ball after it bounces
-  ball.body.setVelocityY(ball.body.velocity.y - 10);
+  ball.body.setVelocityY(ball.body.velocity.y - 5);
 
-  let newXVelocity = Math.abs(ball.body.velocity.x) + 15;
+  let newXVelocity = Math.abs(ball.body.velocity.x) + 5;
   // If the ball is to the left of the player, ensure the x velocity is negative
-  if (ball.body.x < player.body.x) {
+  halwayX = player.body.x + (player.body.width / 2);
+  if (ball.body.x < halwayX) {
     ball.body.setVelocityX(-newXVelocity);
   } else {
     ball.body.setVelocityX(newXVelocity);
   }
+}
+
+/**
+ * Checks if the user lost the game
+ * @param ball - the ball sprite
+ * @param world - the physics world
+ */
+function isGameOver(ball, world) {
+  return ball.body.y > world.bounds.height;
+}
+
+/**
+ * Checks if the user won the game
+ * @param violetBricks - sprite group of violet bricks
+ * @param yellowBricks - sprite group of yellow bricks
+ * @param redBricks - sprite group of red bricks
+ */
+function isWon(violetBricks, yellowBricks, redBricks) {
+  return violetBricks.countActive() + yellowBricks.countActive() + redBricks.countActive() == 0;
 }
