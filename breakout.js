@@ -1,3 +1,6 @@
+// Variable to determine if we started playing
+let started = false;
+
 // This object contains all the Phaser configurations to load our game
 const config = {
   /**
@@ -130,6 +133,17 @@ function update() {
     player.body.setVelocityX(-250);
   } else if (cursors.right.isDown) {
     player.body.setVelocityX(250);
+  }
+
+  // The game only begins when the user presses Spacebar to release the paddle
+  if (!started) {
+    // The ball should follow the paddle while the user selects where to start
+    ball.body.x = player.body.x + (player.body.width / 4);
+
+    if (cursors.space.isDown) {
+      started = true;
+      ball.setVelocityY(-200);
+    }
   }
 }
 
