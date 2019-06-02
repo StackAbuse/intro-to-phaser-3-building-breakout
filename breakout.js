@@ -134,6 +134,18 @@ function create() {
   this.physics.add.collider(ball, redBricks, destroyBrick, null, this);
   // Add collision for the player
   this.physics.add.collider(ball, player, hitPaddle, null, this);
+
+  // Create start text
+  startText = this.add.text(
+    this.physics.world.bounds.width / 2,
+    this.physics.world.bounds.height / 3,
+    'Press SPACE to Start',
+    {
+      fontFamily: 'Monaco, Courier, monospace',
+      fontSize: 50
+    },
+  );
+  startText.setOrigin(0.5);
 }
 
 /**
@@ -160,6 +172,7 @@ function update() {
     if (cursors.space.isDown) {
       started = true;
       ball.setVelocityY(-200);
+      startText.visible = false;
     }
   }
 }
@@ -197,7 +210,7 @@ function hitPaddle(ball, player) {
   // Increase the velocity of the ball after it bounces
   ball.body.setVelocityY(ball.body.velocity.y - 10);
 
-  let newXVelocity = Math.abs(ball.body.velocity.x) + 10;
+  let newXVelocity = Math.abs(ball.body.velocity.x) + 15;
   // If the ball is to the left of the player, ensure the x velocity is negative
   if (ball.body.x < player.body.x) {
     ball.body.setVelocityX(-newXVelocity);
