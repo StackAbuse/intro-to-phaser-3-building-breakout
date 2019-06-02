@@ -89,6 +89,7 @@ function create() {
   violetBricks = this.physics.add.group({
     key: 'brick1',
     repeat: 9,
+    immovable: true,
     setXY: {
       x: 90,
       y: 120,
@@ -100,6 +101,7 @@ function create() {
   yellowBricks = this.physics.add.group({
     key: 'brick2',
     repeat: 9,
+    immovable: true,
     setXY: {
       x: 90,
       y: 80,
@@ -111,6 +113,7 @@ function create() {
   redBricks = this.physics.add.group({
     key: 'brick3',
     repeat: 9,
+    immovable: true,
     setXY: {
       x: 90,
       y: 40,
@@ -120,6 +123,9 @@ function create() {
 
   // This needs to be added so the ball falls to the bottom
   this.physics.world.checkCollision.down = false;
+
+  // Add collision for the bricks
+  this.physics.add.collider(ball, violetBricks, destroyBall, null, this);
 }
 
 /**
@@ -148,7 +154,16 @@ function update() {
       ball.setVelocityY(-200);
     }
   }
-
-
 }
 
+/**
+ * This function handles the collision between a ball and a brick sprite
+ * In the create function, ball is a sprite and violetBricks, yellowBricks and
+ * redBricks are sprite groups. Phaser is smart enough to handle the collisions
+ * for each individual sprite.
+ * @param ball - the ball sprite object
+ * @param brick - the brick sprite object
+ */
+function destroyBall(ball, brick) {
+  brick.destroy();
+}
