@@ -13,14 +13,16 @@ const config = {
   width: 800,
   heigth: 640,
   scale: {
-    mode: Phaser.Scale.RESIZE, // Ensure the canvas is resized to fit the parent div's dimensions
-    autoCenter: Phaser.Scale.CENTER_BOTH // Center the game canvas both horizontally and vertically within the parent
+    // Ensure the canvas is resized to fit the parent div's dimensions
+    mode: Phaser.Scale.RESIZE,
+    // Center the game canvas both horizontally and vertically within the parent
+    autoCenter: Phaser.Scale.CENTER_BOTH
   },
   /**
    * A scene is "self-contained" game world - all the logic and state of a game
    * component. For e.g. it's common to a game menu to be one scene, whereas the
    * first level is another scene. Phaser has a Scene object, but we can provide
-   * a regular JS object with the these function names
+   * a regular JS object with these function names:
    */
   scene: {
     preload,
@@ -85,11 +87,15 @@ function create() {
     565, // y position
     'ball' // key of image for the sprite
   );
+  /**
+   * The bounce ensures that the ball retains its velocity after colliding with
+   * an object.
+   */
   ball.setBounce(1, 1);
   // Also collides with world bounds
   ball.setCollideWorldBounds(true);
 
-  // Add blue bricks
+  // Add violet bricks
   violetBricks = this.physics.add.group({
     key: 'brick1',
     repeat: 8,
@@ -157,9 +163,11 @@ function create() {
       fontSize: 64
     },
   );
-  gameOverText.setOrigin(0.5);
+  gameOverText.setOrigin(0.5); // Place text in the center of the scene
+  // Make it invisible until the player loses
   gameOverText.setVisible(false);
 
+  // Create the game won text
   playerWonText = this.add.text(
     this.physics.world.bounds.width / 2,
     this.physics.world.bounds.height / 3,
@@ -169,12 +177,14 @@ function create() {
       fontSize: 64
     },
   );
-  playerWonText.setOrigin(0.5);
+  playerWonText.setOrigin(0.5); // Place text in the center of the scene
+  // Make it invisible until the player wins
   playerWonText.setVisible(false);
 }
 
 /**
- *
+ * Our game state is updated in this function. This corresponds exactly to the
+ * update process of the game loop
  */
 function update() {
   // Check if the ball left the scene i.e. game over
