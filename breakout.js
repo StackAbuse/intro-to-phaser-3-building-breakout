@@ -1,5 +1,9 @@
+// Game objects are global variables so that many functions can access them
+let player, ball, violetBricks, yellowBricks, redBricks, cursors;
 // Variable to determine if we started playing
-let started = false;
+let gameStarted = false;
+// Add global text objects
+let openingText, gameOverText, playerWonText;
 
 // This object contains all the Phaser configurations to load our game
 const config = {
@@ -42,7 +46,7 @@ const config = {
   }
 };
 
-// Create the game object
+// Create the game instance
 const game = new Phaser.Game(config);
 
 /**
@@ -73,27 +77,12 @@ function create() {
     'paddle', // key of image for the sprite
   );
 
-  // Make the player immovable so the ball bounces off it
-  player.body.immovable = true;
-
-  // Variable to track key presses
-  cursors = this.input.keyboard.createCursorKeys();
-  // Ensure that the player can't leave the screen
-  player.setCollideWorldBounds(true);
-
   // Let's add the ball
   ball = this.physics.add.sprite(
     400, // x position
     565, // y position
     'ball' // key of image for the sprite
   );
-  /**
-   * The bounce ensures that the ball retains its velocity after colliding with
-   * an object.
-   */
-  ball.setBounce(1, 1);
-  // Also collides with world bounds
-  ball.setCollideWorldBounds(true);
 
   // Add violet bricks
   violetBricks = this.physics.add.group({
@@ -131,53 +120,83 @@ function create() {
     }
   });
 
-  // This needs to be added so the ball falls to the bottom
+  // Manage key presses
+  cursors = this.input.keyboard.createCursorKeys();
+
+  // Ensure that the player and ball can't leave the screen
+  player.setCollideWorldBounds(true);
+  ball.setCollideWorldBounds(true);
+  /**
+   * The bounce ensures that the ball retains its velocity after colliding with
+   * an object.
+   */
+  ball.setBounce(1, 1);
+
+  /**
+   * Disable collision with the bottom of the game world. This needs to be added
+   * so the ball falls to the bottom, which means that the game is over
+   */
   this.physics.world.checkCollision.down = false;
 
   // Add collision for the bricks
-  this.physics.add.collider(ball, violetBricks, destroyBrick, null, this);
-  this.physics.add.collider(ball, yellowBricks, destroyBrick, null, this);
-  this.physics.add.collider(ball, redBricks, destroyBrick, null, this);
-  // Add collision for the player
-  this.physics.add.collider(ball, player, hitPaddle, null, this);
+  this.physics.add.collider(ball, violetBricks, hitBrick, null, this);
+  this.physics.add.collider(ball, yellowBricks, hitBrick, null, this);
+  this.physics.add.collider(ball, redBricks, hitBrick, null, this);
 
-  // Create start text
-  startText = this.add.text(
+  // Make the player immovable
+  player.setImmovable(true);
+  // Add collision for the player
+  this.physics.add.collider(ball, player, hitPlayer, null, this);
+
+  // Create opening text
+  openingText = this.add.text(
     this.physics.world.bounds.width / 2,
-    this.physics.world.bounds.height / 3,
+    this.physics.world.bounds.height / 2,
     'Press SPACE to Start',
     {
       fontFamily: 'Monaco, Courier, monospace',
-      fontSize: 50
+      fontSize: '50px',
+      fill: '#fff'
     },
   );
-  startText.setOrigin(0.5);
+
+  /**
+   * The origin of the text object is at the top left, change the origin to the
+   * center so it can be properly aligned
+   */
+  openingText.setOrigin(0.5);
 
   // Create game over text
   gameOverText = this.add.text(
     this.physics.world.bounds.width / 2,
-    this.physics.world.bounds.height / 3,
+    this.physics.world.bounds.height / 2,
     'Game Over',
     {
       fontFamily: 'Monaco, Courier, monospace',
-      fontSize: 64
+      fontSize: '50px',
+      fill: '#fff'
     },
   );
-  gameOverText.setOrigin(0.5); // Place text in the center of the scene
+
+  gameOverText.setOrigin(0.5);
+
   // Make it invisible until the player loses
   gameOverText.setVisible(false);
 
   // Create the game won text
   playerWonText = this.add.text(
     this.physics.world.bounds.width / 2,
-    this.physics.world.bounds.height / 3,
+    this.physics.world.bounds.height / 2,
     'You won!',
     {
       fontFamily: 'Monaco, Courier, monospace',
-      fontSize: 64
+      fontSize: '50px',
+      fill: '#fff'
     },
   );
-  playerWonText.setOrigin(0.5); // Place text in the center of the scene
+
+  playerWonText.setOrigin(0.5);
+
   // Make it invisible until the player wins
   playerWonText.setVisible(false);
 }
@@ -188,13 +207,16 @@ function create() {
  */
 function update() {
   // Check if the ball left the scene i.e. game over
-  if (isGameOver(ball, this.physics.world)) {
+  if (isGameOver(this.physics.world)) {
     gameOverText.setVisible(true);
-  } else if (isWon(violetBricks, yellowBricks, redBricks)) {
+    ball.disableBody(true, true);
+  } else if (isWon()) {
     playerWonText.setVisible(true);
+    ball.disableBody(true, true);
   } else {
     // Put this in so that the player doesn't move if no key is being pressed
     player.body.setVelocityX(0);
+
     /**
      * Check the cursor and move the velocity accordingly. With Arcade Physics we
      * adjust velocity for movement as opposed to manipulating xy values directly
@@ -206,17 +228,34 @@ function update() {
     }
 
     // The game only begins when the user presses Spacebar to release the paddle
-    if (!started) {
+    if (!gameStarted) {
       // The ball should follow the paddle while the user selects where to start
-      ball.body.x = player.body.x + (player.body.width / 2) - (ball.body.width / 2);
+      ball.setX(player.x);
 
       if (cursors.space.isDown) {
-        started = true;
+        gameStarted = true;
         ball.setVelocityY(-200);
-        startText.visible = false;
+        openingText.setVisible(false);
       }
     }
   }
+}
+
+/**
+ * Checks if the user lost the game
+ * @param world - the physics world
+ * @return {boolean}
+ */
+function isGameOver(world) {
+  return ball.body.y > world.bounds.height;
+}
+
+/**
+ * Checks if the user won the game
+ * @return {boolean}
+ */
+function isWon() {
+  return violetBricks.countActive() + yellowBricks.countActive() + redBricks.countActive() == 0;
 }
 
 /**
@@ -227,8 +266,8 @@ function update() {
  * @param ball - the ball sprite
  * @param brick - the brick sprite
  */
-function destroyBrick(ball, brick) {
-  brick.destroy();
+function hitBrick(ball, brick) {
+  brick.disableBody(true, true);
 
   if (ball.body.velocity.x == 0) {
     randNum = Math.random();
@@ -248,35 +287,15 @@ function destroyBrick(ball, brick) {
  * @param ball - the ball sprite
  * @param player - the player/paddle sprite
  */
-function hitPaddle(ball, player) {
+function hitPlayer(ball, player) {
   // Increase the velocity of the ball after it bounces
-  ball.body.setVelocityY(ball.body.velocity.y - 5);
+  ball.setVelocityY(ball.body.velocity.y - 5);
 
   let newXVelocity = Math.abs(ball.body.velocity.x) + 5;
   // If the ball is to the left of the player, ensure the x velocity is negative
-  halwayX = player.body.x + (player.body.width / 2);
-  if (ball.body.x < halwayX) {
-    ball.body.setVelocityX(-newXVelocity);
+  if (ball.x < player.x) {
+    ball.setVelocityX(-newXVelocity);
   } else {
-    ball.body.setVelocityX(newXVelocity);
+    ball.setVelocityX(newXVelocity);
   }
-}
-
-/**
- * Checks if the user lost the game
- * @param ball - the ball sprite
- * @param world - the physics world
- */
-function isGameOver(ball, world) {
-  return ball.body.y > world.bounds.height;
-}
-
-/**
- * Checks if the user won the game
- * @param violetBricks - sprite group of violet bricks
- * @param yellowBricks - sprite group of yellow bricks
- * @param redBricks - sprite group of red bricks
- */
-function isWon(violetBricks, yellowBricks, redBricks) {
-  return violetBricks.countActive() + yellowBricks.countActive() + redBricks.countActive() == 0;
 }
