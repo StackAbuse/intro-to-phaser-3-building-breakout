@@ -1,3 +1,3 @@
 # intro-to-phaser-3-building-breakout
 
-Accompanying code for upcoming Phaser tutorial on StackAbuse
+Accompanying code for the the StackAbuse article [Introduction to Phaser 3: Building Breakout](https://stackabuse.com/introduction-to-phaser-3-building-breakout/).
